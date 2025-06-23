@@ -20,7 +20,7 @@ T = TypeVar('T')
 PType = TypeVar('PType', bound=BaseModel)
 
 
-class BaseSQLAlchemyRepository(Generic[T, PType]):
+class BaseSqlAlchemyRepository(Generic[T, PType]):
     def __init__(self, model: Type[T], pydantic_model: Type[PType], session: AsyncSession):
         self.model = model
         self.pydantic_model = pydantic_model

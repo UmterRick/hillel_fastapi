@@ -13,7 +13,6 @@ from sqlalchemy.orm import relationship
 
 from src.common.databases.postgres import Base
 
-
 class Product(Base):
     __tablename__ = "products"
 

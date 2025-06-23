@@ -14,11 +14,3 @@ class ProductRepository(BaseSqlAlchemyRepository[Product, ProductModel]):
 
 def get_product_repository(session: AsyncSession = Depends(get_session)) -> ProductRepository:
     return ProductRepository(session=session)
-
-
-def func() -> dict[str, int]:
-    return {}
-
-x = func()
-e = x[0]
-
