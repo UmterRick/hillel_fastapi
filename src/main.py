@@ -5,15 +5,18 @@ import uvicorn
 from fastapi import FastAPI
 
 from src.base_settings import base_settings
+from src.common.databases.mongo_db import init_mongo_db
 from src.common.databases.postgres import postgres
 from general.views import router as status_router
 from src.catalogue.views import product_router
 from src.authentication.views import router as auth_router
 from src.users.views import router as users_router
+from src.review.views.product_reviews import router as reviews_router
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
     postgres.connect(base_settings.postgres.url)
+    await init_mongo_db()
     include_routers(application)
     yield
     await postgres.disconnect()
@@ -35,6 +38,11 @@ def include_routers(application: FastAPI) -> None:
         router=auth_router,
         prefix="/auth",
         tags=["Authentication"]
+    )
+    application.include_router(
+        router=reviews_router,
+        prefix="/reviews",
+        tags=["Reviews"]
     )
 
 def get_application():

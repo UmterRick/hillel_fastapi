@@ -10,6 +10,8 @@ class PostgresSettings(BaseModel):
 
     url: str = "postgresql+asyncpg://user:password@localhost:5432/db_name"
 
+class MongoSettings(BaseModel):
+    url:str = "mongodb://localhost:27017/db_name"
 
 class AuthorizationSettings(BaseModel):
     secret_key: str
@@ -20,6 +22,7 @@ class AuthorizationSettings(BaseModel):
 class ProjectSettings(BaseSettings):
     debug: bool = True
     postgres: PostgresSettings = PostgresSettings()
+    mongo: MongoSettings = MongoSettings()
     auth: AuthorizationSettings
 
     model_config = SettingsConfigDict(

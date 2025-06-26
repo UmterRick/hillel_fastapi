@@ -9,6 +9,7 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - mongo-db
     networks:
       - web_network
 
@@ -22,6 +23,16 @@ services:
       - .env
     networks:
       - web_network
+
+  mongo-db:
+    image: mongo:latest
+    networks:
+      - web_network
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/mongodb
 
   pgadmin:
     image: dpage/pgadmin4
@@ -52,6 +63,7 @@ services:
 volumes:
   postgres_data:
   pgadmin-data:
+  mongodb-data:
   redis_data:
 
 networks:
