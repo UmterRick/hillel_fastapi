@@ -6,6 +6,7 @@ from sqlalchemy import pool
 
 from alembic import context
 from src.catalogue.models import sqlalchemy
+from src.users.models import sqlalchemy as users_sqlalchemy
 from dotenv import load_dotenv
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

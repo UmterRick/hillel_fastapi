@@ -9,10 +9,12 @@ from sqlalchemy import (
     String,
     Text,
 )
+
+from sqlalchemy import Enum as SQLEnum, func
 from sqlalchemy.orm import relationship
-
+from decimal import Decimal
 from src.common.databases.postgres import Base
-
+import enum
 
 class Product(Base):
     __tablename__ = "products"
@@ -92,3 +94,74 @@ class ProductDiscount(Base):
 
     product = relationship('Product', back_populates='discounts')
 
+
+class BasketStatusEnum(str, enum.Enum):
+    OPEN = 'Open'
+    CLOSED = 'Closed'
+    CANCELLED = 'Cancelled'
+
+
+class OrderStatusEnum(str, enum.Enum):
+    OPEN = 'Open'
+    PAID = 'Paid'
+    SENT = 'Sent'
+    RECEIVED = 'Received'
+    CANCELLED = 'Cancelled'
+    RETURNED = 'Returned'
+
+
+class Basket(Base):
+    __tablename__ = "baskets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    price = Column(Numeric(10, 2, asdecimal=True), default=Decimal("0.00"))
+    status = Column(SQLEnum(BasketStatusEnum), default=BasketStatusEnum.OPEN)
+
+    lines = relationship("BasketLine", back_populates="basket")
+    orders = relationship("Order", back_populates="basket")
+
+
+class BasketLine(Base):
+    __tablename__ = "basket_lines"
+
+    id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("products.id"))
+    basket_id = Column(Integer, ForeignKey("baskets.id"))
+    quantity = Column(Integer)
+    price = Column(Numeric(10, 2, asdecimal=True), default=Decimal("0.00"))
+
+    basket = relationship("Basket", back_populates="lines")
+    product = relationship("Product")
+
+
+class Order(Base):
+    __tablename__ = "orders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    number = Column(Integer, default=10000)
+    basket_id = Column(Integer, ForeignKey("baskets.id"))
+    user_id = Column(Integer, ForeignKey("users.id"))
+    address_id = Column(Integer, ForeignKey("addresses.id"))
+    total_price = Column(Numeric(10, 2, asdecimal=True), default=Decimal("0.00"))
+    shipping_price = Column(Numeric(10, 2, asdecimal=True), default=Decimal("0.00"))
+    shipping_method = Column(String, nullable=True)
+    status = Column(SQLEnum(OrderStatusEnum), default=OrderStatusEnum.OPEN)
+    additional_info = Column(String, nullable=True)
+    created_at = Column(DateTime, default=func.now())
+
+    lines = relationship("OrderLine", back_populates="order")
+    basket = relationship("Basket", back_populates="orders")
+
+
+class OrderLine(Base):
+    __tablename__ = "order_lines"
+
+    id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("products.id"))
+    order_id = Column(Integer, ForeignKey("orders.id"))
+    quantity = Column(Integer)
+    price = Column(Numeric(10, 2, asdecimal=True), default=Decimal("0.00"))
+
+    order = relationship("Order", back_populates="lines")
+    product = relationship("Product")
