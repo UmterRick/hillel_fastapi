@@ -9,7 +9,6 @@ from sqlalchemy import (
     DateTime,
     String,
     ForeignKey,
-
 )
 from sqlalchemy.orm import relationship
 
@@ -25,10 +24,13 @@ class User(Base):
     is_active = Column(Boolean, default=False)
     first_name = Column(String)
     last_name = Column(String)
-    date_joined = Column(DateTime, default=datetime.datetime.now(tz=datetime.timezone.utc))
+    date_joined = Column(
+        DateTime, default=datetime.datetime.now(tz=datetime.timezone.utc)
+    )
     last_login = Column(DateTime, nullable=True)
 
     addresses = relationship("UserAddress", back_populates="user")
+    baskets = relationship("Basket", back_populates="user")
 
     def __str__(self):
         return self.email
@@ -48,5 +50,3 @@ class UserAddress(Base):
     additional_info = Column(String, nullable=True)
 
     user = relationship("User", back_populates="addresses")
-
-

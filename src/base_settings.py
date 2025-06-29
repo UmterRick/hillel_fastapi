@@ -9,6 +9,7 @@ class PostgresSettings(BaseModel):
     port: int = 5432
 
     url: str = "postgresql+asyncpg://user:password@host.docker.internal:5432/db_name"
+    sync_url: str = "postgresql+psycopg2://admin:admin@localhost:5432/mydb"
 
 
 class ProjectSettings(BaseSettings):
@@ -18,8 +19,8 @@ class ProjectSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        extra='ignore',
-        env_nested_delimiter="__"
+        extra="ignore",
+        env_nested_delimiter="__",
     )
 
 

@@ -6,7 +6,12 @@ from sqlalchemy import pool
 
 from alembic import context
 from src.catalogue.models import sqlalchemy
+
+# Import users models to register them with SQLAlchemy metadata for Alembic
+from src.users.models import sqlalchemy as users_sqlalchemy  # noqa: F401
+
 from dotenv import load_dotenv
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 load_dotenv(".env")
@@ -17,7 +22,9 @@ DB_HOST = os.getenv("POSTGRES_HOST")
 DB_PORT = os.getenv("POSTGRES_PORT") or 5432
 
 if not all([DB_USER, DB_PASS, DB_NAME, DB_HOST, DB_PORT]):
-    raise ValueError(f"Some environment variables are missing, {[DB_USER, DB_PASS, DB_NAME, DB_HOST, DB_PORT]}")
+    raise ValueError(
+        f"Some environment variables are missing, {[DB_USER, DB_PASS, DB_NAME, DB_HOST, DB_PORT]}"
+    )
 DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_HOST}:5432/{DB_NAME}"
 
 config = context.config
@@ -78,9 +85,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
