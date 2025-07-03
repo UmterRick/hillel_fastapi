@@ -5,6 +5,11 @@ from pydantic import (
     constr,
 )
 
+class ProductElasticResponse(BaseModel):
+    product_id: int
+    title: str
+    score: float
+
 
 class ProductModel(BaseModel):
     id: Optional[int]

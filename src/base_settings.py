@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import BaseModel, conint
+from pydantic import BaseModel, conint, field_validator
 
 
 class PostgresSettings(BaseModel):
@@ -18,12 +18,29 @@ class AuthorizationSettings(BaseModel):
     algorithm: str = "HS256"
     access_token_expire_minutes: conint(gt=0) = 30
 
+class ElasticsearchSettings(BaseModel):
+    hosts: str = "http://elastic:password@localhost:9200"
+    timeout: int = 10
+    verify_certs: bool = False
+
+    @field_validator("hosts")
+    def validate_hosts(cls, value: str) -> list[str]:
+        value = value.split(",") if isinstance(value, str) else value
+        return value
+
+
+class RedisSettings(BaseModel):
+    host: str = "localhost"
+    port: str = 6379
 
 class ProjectSettings(BaseSettings):
     debug: bool = True
     postgres: PostgresSettings = PostgresSettings()
     mongo: MongoSettings = MongoSettings()
+    elasticsearch: ElasticsearchSettings = ElasticsearchSettings()
     auth: AuthorizationSettings
+    redis: RedisSettings = RedisSettings()
+    date_time_format:str = '%Y-%m-%d %H:%M:%S'
 
     model_config = SettingsConfigDict(
         env_file=".env",

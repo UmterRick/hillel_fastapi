@@ -18,6 +18,10 @@ asyncpg = "^0.30.0"
 passlib = "^1.7.4"
 python-jose = "^3.5.0"
 beanie = "^1.30.0"
+elasticsearch-dsl = {extras = ["async"], version = "^8.18.0"}
+redis = "^6.2.0"
+aioredis = "^2.0.1"
+aiohttp = "^3.12.13"
 
 
 [build-system]

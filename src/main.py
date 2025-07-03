@@ -1,10 +1,10 @@
 from contextlib import asynccontextmanager
-from sys import prefix
 
 import uvicorn
 from fastapi import FastAPI
 
 from src.base_settings import base_settings
+from src.catalogue.utils import ProductElasticManager
 from src.common.databases.mongo_db import init_mongo_db
 from src.common.databases.postgres import postgres
 from general.views import router as status_router
@@ -16,8 +16,9 @@ from src.review.views.product_reviews import router as reviews_router
 @asynccontextmanager
 async def lifespan(application: FastAPI):
     postgres.connect(base_settings.postgres.url)
-    await init_mongo_db()
+    # await init_mongo_db()
     include_routers(application)
+    await ProductElasticManager().init_indices()
     yield
     await postgres.disconnect()
 
