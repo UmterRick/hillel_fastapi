@@ -26,6 +26,8 @@ class Product(Base):
     images = relationship('ProductImage', back_populates='product')
     stock_records = relationship('StockRecord', back_populates='product')
     discounts = relationship('ProductDiscount', back_populates='product')
+    basket_lines = relationship('BasketLine', back_populates='product')
+    order_lines = relationship('OrderLine', back_populates='product')
 
 
 class ProductCategory(Base):

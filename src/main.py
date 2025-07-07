@@ -8,8 +8,15 @@ from src.base_settings import base_settings
 from src.common.databases.postgres import postgres
 from general.views import router as status_router
 from src.catalogue.views import product_router
+from src.orders.views import orders_router
 from src.authentication.views import router as auth_router
 from src.users.views import router as users_router
+
+from sqladmin import Admin
+from src.common.databases.postgres import engine
+from src.admin import register_admin_views
+
+import src.models
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
@@ -36,6 +43,11 @@ def include_routers(application: FastAPI) -> None:
         prefix="/auth",
         tags=["Authentication"]
     )
+    application.include_router(
+        router=orders_router,
+        prefix="/orders",
+        tags=["Orders"],
+    )
 
 def get_application():
     application = FastAPI(
@@ -45,6 +57,10 @@ def get_application():
         redoc_url="/redoc",
         openapi_url="/openapi.json"
     )
+
+    admin = Admin(application, engine)
+    register_admin_views(admin)
+
     return application
 
 
