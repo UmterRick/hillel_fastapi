@@ -8,7 +8,7 @@ class PostgresSettings(BaseModel):
     db: str = "db_name"
     port: int = 5432
 
-    url: str = "postgresql+asyncpg://user:password@localhost:5432/db_name"
+    url: str = "postgresql+asyncpg://user:password@db:5432/db_name"
 
 class MongoSettings(BaseModel):
     url:str = "mongodb://localhost:27017/db_name"
@@ -19,7 +19,7 @@ class AuthorizationSettings(BaseModel):
     access_token_expire_minutes: conint(gt=0) = 30
 
 class ElasticsearchSettings(BaseModel):
-    hosts: str = "http://elastic:password@localhost:9200"
+    hosts: str = "http://elastic:password@host.docker.internal:9200"
     timeout: int = 10
     verify_certs: bool = False
 
@@ -30,7 +30,7 @@ class ElasticsearchSettings(BaseModel):
 
 
 class RedisSettings(BaseModel):
-    host: str = "localhost"
+    host: str = "redis"
     port: str = 6379
 
 class ProjectSettings(BaseSettings):

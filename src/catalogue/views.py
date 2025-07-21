@@ -2,7 +2,7 @@ from typing import Union, Annotated
 
 from fastapi import APIRouter, status, Depends, Response, BackgroundTasks
 
-from src.catalogue.models.pydantic import ProductModel
+from src.catalogue.models.pydantic import ProductModel, ProductCreate
 from src.catalogue.services import get_product_service
 from src.common.enums import TaskStatus
 from src.common.exceptions.base import ObjectDoesNotExistException
@@ -54,6 +54,16 @@ async def get_product_details(
 
     return response
 
+@product_router.post(
+    "",
+    status_code=status.HTTP_201_CREATED
+)
+async def create_product(
+        product_data: ProductCreate,
+        service: Annotated[get_product_service, Depends()]
+):
+    created_product = await service.create(instance_data=product_data)
+    return created_product
 
 @product_router.get(
     "/search",

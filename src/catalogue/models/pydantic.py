@@ -11,6 +11,12 @@ class ProductElasticResponse(BaseModel):
     score: float
 
 
+class ProductCreate(BaseModel):
+    title: str
+    description: Optional[str]
+    short_description: Optional[constr(max_length=20)]
+    is_active: bool
+
 class ProductModel(BaseModel):
     id: Optional[int]
     title: str

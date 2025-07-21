@@ -1,17 +1,17 @@
 #version: '3.8'
 
 services:
-#  web:
-#    build: .
-#    volumes:
-#      - .:/app
-#    ports:
-#      - "8000:8000"
-#    depends_on:
-#      - db
+  web:
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
 #      - mongo-db
-#    networks:
-#      - web_network
+    networks:
+      - web_network
 
   db:
     image: postgres:13
@@ -65,29 +65,29 @@ services:
       retries: 10
     networks:
       - web_network
-
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.11.3
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-    ports:
-      - "5601:5601"
-
-    environment:
-      SERVERNAME: kibana
-      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
-      ELASTICSEARCH_USERNAME: kibana_system
-      ELASTICSEARCH_PASSWORD: password
-    env_file:
-      - .env
-
-    healthcheck:
-      test: ["CMD-SHELL", "curl -s -I http://localhost:5601 | grep -q 'HTTP/1.1 302 Found"]
-      interval: 5s
-      retries: 10
-    networks:
-      - web_network
+#
+#  kibana:
+#    image: docker.elastic.co/kibana/kibana:8.11.3
+#    depends_on:
+#      elasticsearch:
+#        condition: service_healthy
+#    ports:
+#      - "5601:5601"
+#
+#    environment:
+#      SERVERNAME: kibana
+#      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+#      ELASTICSEARCH_USERNAME: kibana_system
+#      ELASTICSEARCH_PASSWORD: password
+#    env_file:
+#      - .env
+#
+#    healthcheck:
+#      test: ["CMD-SHELL", "curl -s -I http://localhost:5601 | grep -q 'HTTP/1.1 302 Found"]
+#      interval: 5s
+#      retries: 10
+#    networks:
+#      - web_network
 
 
   redis:
@@ -116,6 +116,59 @@ services:
       redis:
         condition: service_healthy
 
+    networks:
+      - web_network
+
+  zookeeper-0:
+    image: confluentinc/cp-zookeeper:7.2.15
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      KAFKA_OPTS: "-Dzookeeper.4lw.commands.whitelist=ruok"
+    healthcheck:
+      test: [ "CMD-SHELL", "echo ruok | nc 127.0.0.1 2181 || exit -1" ]
+      interval: 5s
+      retries: 10
+    networks:
+      - web_network
+
+  kafka-0:
+    image: confluentinc/cp-kafka:7.2.15
+    depends_on:
+      zookeeper-0:
+        condition: service_healthy
+
+    ports:
+      - "29092:29092"
+
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-0:2181
+      KAFKA_LISTENERS: PLAINTEXT://kafka-0:9092,PLAINTEXT_EXTERNAL://kafka-0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-0:9092,PLAINTEXT_EXTERNAL://127.0.0.1:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_EXTERNAL:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "/bin/kafka-topic", "--bootstrap-server", "kafka-0:9092", "--list"]
+      interval: 5s
+      retries: 10
+    networks:
+      - web_network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    depends_on:
+      - kafka-0
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-0:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper-0:2181
+      SERVER_PORT: 8080
+
+    ports:
+      - "8080:8080"
     networks:
       - web_network
 
