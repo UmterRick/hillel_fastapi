@@ -7,6 +7,17 @@ from sqlalchemy import pool
 from alembic import context
 from src.catalogue.models import sqlalchemy
 from dotenv import load_dotenv
+from src.catalogue.models.basket import Basket, BasketLine, OrderLine
+from src.catalogue.models.order import Order
+
+
+from src.catalogue.models.base import Base
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+target_metadata = Base.metadata
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 load_dotenv(".env")
