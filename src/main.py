@@ -7,13 +7,22 @@ from src.base_settings import base_settings
 from src.common.databases.postgres import postgres
 from general.views import router as status_router
 from src.catalogue.views import product_router
+from sqladmin import Admin
+from src.catalogue.admin.basket import BasketAdmin, BasketLineAdmin, OrderLineAdmin
+from src.catalogue.admin.order import OrderAdmin
+
+admin = Admin(app, engine)
+admin.add_view(BasketAdmin)
+admin.add_view(BasketLineAdmin)
+admin.add_view(OrderLineAdmin)
+admin.add_view(OrderAdmin)
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
-    # postgres.connect(base_settings.postgres.url)
+    postgres.connect(base_settings.postgres.url)
     include_routers(application)
     yield
-    # await postgres.disconnect()
+    await postgres.disconnect()
 
 
 def include_routers(application: FastAPI) -> None:
