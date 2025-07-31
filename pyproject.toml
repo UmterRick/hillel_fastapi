@@ -3,13 +3,6 @@ name = "fastapi_hillel"
 version = "0.1.0"
 description = ""
 authors = ["umterrick <usichenko.vlad67@gmail.com>"]
-packages = [
-    { include = "authentication", from = "src" },
-    { include = "catalogue", from = "src" },
-    { include = "common", from = "src" },
-    { include = "general", from = "src" },
-    { include = "users", from = "src" }
-]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -24,7 +17,7 @@ python-dotenv = "^1.1.0"
 asyncpg = "^0.30.0"
 passlib = "^1.7.4"
 python-jose = "^3.5.0"
-email-validator = "^2.2.0"
+bcrypt = "^4.3.0"
 
 
 [build-system]

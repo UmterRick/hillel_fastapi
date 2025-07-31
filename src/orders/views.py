@@ -1,8 +1,14 @@
 from typing import Union, Annotated
-
 from fastapi import APIRouter, status, Depends, Response
+from src.orders.models.pydantic import (
+    BasketLineModel,
+    BasketModel,
+    OrderLineModel,
+    OrderModel,
+    OrderCreateFromBasket,
+    OrderUpdate,
+)
 
-from src.orders.models.pydantic import BasketLineModel, BasketModel, OrderLineModel, OrderModel
 from src.orders.services import (
     BasketLineService,
     get_basket_line_service,
@@ -17,8 +23,8 @@ from src.orders.services import (
 from src.common.exceptions.base import ObjectDoesNotExistException
 from src.common.schemas.common import ErrorResponse
 
-
 orders_router = APIRouter(prefix="/orders", tags=["Orders"])
+
 
 
 # ------------------------------------------------------------------------
@@ -67,6 +73,7 @@ async def get_basket_line_details(
 
     return result
 
+
 @orders_router.post(
     path="/basket_lines",
     status_code=status.HTTP_200_OK,
@@ -90,6 +97,7 @@ async def basket_line_create(
 
     return result
 
+
 @orders_router.put(
     path="/basket_lines/{basket_line_id}",
     status_code=status.HTTP_200_OK,
@@ -107,7 +115,7 @@ async def basket_line_update(
     :return: Updated BasketLineModel instance.
     """
     try:
-        result = await service.update(pk=basket_line_id, update_data=basket_line_data)
+        result = await service.update(basket_line_id, basket_line_data)
     except ObjectDoesNotExistException as exc:
         response.status_code = status.HTTP_404_NOT_FOUND
         return ErrorResponse(message=exc.message)
@@ -138,6 +146,7 @@ async def basket_line_delete(
         return ErrorResponse(message=exc.message)
 
     return result
+
 
 
 # ------------------------------------------------------------------------
@@ -186,6 +195,7 @@ async def get_basket_details(
 
     return result
 
+
 @orders_router.post(
     path="/baskets",
     status_code=status.HTTP_200_OK,
@@ -209,6 +219,7 @@ async def basket_create(
 
     return result
 
+
 @orders_router.put(
     path="/baskets/{basket_id}",
     status_code=status.HTTP_200_OK,
@@ -226,7 +237,7 @@ async def basket_update(
     :return: Updated BasketModel instance.
     """
     try:
-        result = await service.update(pk=basket_id, update_data=basket_data)
+        result = await service.update(pk=basket_id, instance_data=basket_data)
     except ObjectDoesNotExistException as exc:
         response.status_code = status.HTTP_404_NOT_FOUND
         return ErrorResponse(message=exc.message)
@@ -263,7 +274,6 @@ async def basket_delete(
 # ------------------------------------------------------------------------
 # OrderLine CRUD endpoints
 # ------------------------------------------------------------------------
-
 
 
 @orders_router.get(
@@ -307,84 +317,26 @@ async def get_order_line_details(
 
     return result
 
-@orders_router.post(
-    path="/order_lines",
-    status_code=status.HTTP_200_OK,
-    response_model=OrderLineModel
-)
-async def order_line_create(
-        order_line_data: OrderLineModel,
-        response: Response,
-        service: Annotated[OrderLineService, Depends(get_order_line_service)],
-) -> Union[OrderLineModel, ErrorResponse]:
-    """
-    Create a new order line.
+# views.py
+"""
+OrderLine endpoints:
+--------------------
+- GET /order-lines/            ✅ Allowed — get list of order lines
+- GET /order-lines/{id}        ✅ Allowed — get detail of an order line
+- POST /order-lines/           🚫 Not implemented — order lines are created automatically during order creation
+- PUT /order-lines/{id}        🚫 Not implemented — order lines are immutable after creation
+- DELETE /order-lines/{id}     🚫 Not implemented — order lines cannot be removed from confirmed orders
 
-    :return: Created OrderLineModel instance.
-    """
-    try:
-        result = await service.create(order_line_data)
-    except ObjectDoesNotExistException as exc:
-        response.status_code = status.HTTP_404_NOT_FOUND
-        return ErrorResponse(message=exc.message)
-
-    return result
-
-@orders_router.put(
-    path="/order_lines/{order_line_id}",
-    status_code=status.HTTP_200_OK,
-    response_model=OrderLineModel
-)
-async def order_line_update(
-        order_line_data: OrderLineModel,
-        response: Response,
-        order_line_id: int,
-        service: Annotated[OrderLineService, Depends(get_order_line_service)],
-) -> Union[OrderLineModel, ErrorResponse]:
-    """
-    Update an existing order line by ID.
-
-    :return: Updated OrderLineModel instance.
-    """
-    try:
-        result = await service.update(pk=order_line_id, update_data=order_line_data)
-    except ObjectDoesNotExistException as exc:
-        response.status_code = status.HTTP_404_NOT_FOUND
-        return ErrorResponse(message=exc.message)
-
-    return result
-
-
-@orders_router.delete(
-    path="/order_lines/{order_line_id}",
-    status_code=status.HTTP_200_OK,
-
-)
-async def order_line_delete(
-        response: Response,
-        order_line_id: int,
-        service: Annotated[OrderLineService, Depends(get_order_line_service)],
-) -> dict:
-    """
-    Delete a order line by ID.
-
-    :return: Dictionary with deletion confirmation message.
-    """
-    try:
-        await service.delete(pk=order_line_id)
-        result = {"detail": "Order_line deleted successfully"}
-    except ObjectDoesNotExistException as exc:
-        response.status_code = status.HTTP_404_NOT_FOUND
-        return ErrorResponse(message=exc.message)
-
-    return result
+Reasoning:
+OrderLine is a snapshot of the basket state at the moment of order creation. 
+They must remain unchanged for consistency, accounting, and order integrity.
+"""
 
 
 
 # ------------------------------------------------------------------------
 # Order CRUD endpoints
 # ------------------------------------------------------------------------
-
 
 
 @orders_router.get(
@@ -428,28 +380,30 @@ async def get_order_details(
 
     return result
 
+
 @orders_router.post(
     path="/orders",
-    status_code=status.HTTP_200_OK,
+    status_code=status.HTTP_201_CREATED,
     response_model=OrderModel
 )
 async def order_create(
-        order_data: OrderModel,
+        order_data: OrderCreateFromBasket,
         response: Response,
         service: Annotated[OrderService, Depends(get_order_service)],
 ) -> Union[OrderModel, ErrorResponse]:
     """
-    Create a new order.
+    Create a new order from basket.
 
     :return: Created OrderModel instance.
     """
     try:
-        result = await service.create(order_data)
+        result = await service.create_from_basket(order_data)
     except ObjectDoesNotExistException as exc:
         response.status_code = status.HTTP_404_NOT_FOUND
         return ErrorResponse(message=exc.message)
 
     return result
+
 
 @orders_router.put(
     path="/orders/{order_id}",
@@ -457,7 +411,7 @@ async def order_create(
     response_model=OrderModel
 )
 async def order_update(
-        order_data: OrderModel,
+        order_data: OrderUpdate,
         response: Response,
         order_id: int,
         service: Annotated[OrderService, Depends(get_order_service)],
@@ -468,7 +422,7 @@ async def order_update(
     :return: Updated OrderModel instance.
     """
     try:
-        result = await service.update(pk=order_id, update_data=order_data)
+        result = await service.update_order(order_id=order_id, update_data=order_data)
     except ObjectDoesNotExistException as exc:
         response.status_code = status.HTTP_404_NOT_FOUND
         return ErrorResponse(message=exc.message)

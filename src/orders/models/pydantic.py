@@ -4,7 +4,10 @@ from pydantic import (
     BaseModel,
     ConfigDict,
 )
+
 from datetime import datetime
+from src.users.models.pydantic import UserAddressModel
+from src.orders.models.sqlalchemy import OrderStatusEnum
 
 
 class BasketLineModel(BaseModel):
@@ -36,6 +39,16 @@ class OrderLineModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class OrderCreateFromBasket(BaseModel):
+    user_id: int
+    basket_id: int
+    address_id: int
+    additional_info: Optional[str] = None
+    status: Optional[OrderStatusEnum] = OrderStatusEnum.Open
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class OrderModel(BaseModel):
     id: Optional[int] = None
     number: Optional[int] = None
@@ -50,3 +63,9 @@ class OrderModel(BaseModel):
     created_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class OrderUpdate(BaseModel):
+    status: Optional[str] = None
+    additional_info: Optional[str] = None
+    address_id: Optional[int] = None

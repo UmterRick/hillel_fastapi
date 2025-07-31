@@ -6,12 +6,6 @@ from src.common.repository.sqlalchemy import BaseSqlAlchemyRepository
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
-from src.users.models.pydantic import UserAddressRead
-from src.common.exceptions.base import ObjectDoesNotExistException
-
-
 
 
 class BasketLineRepository(BaseSqlAlchemyRepository[BasketLine, BasketLineModel]):
@@ -43,25 +37,10 @@ def get_order_line_repository(session: AsyncSession = Depends(get_session)) -> O
     return OrderLineRepository(session=session)
 
 
+
 class OrderRepository(BaseSqlAlchemyRepository[Order, OrderModel]):
     def __init__(self, session: AsyncSession):
         super().__init__(model=Order, pydantic_model=OrderModel, session=session)
-
-    async def get_order_with_address(self, order_id: int) -> OrderModel:
-        stmt = (
-            select(self.model)
-            .options(selectinload(Order.address))
-            .where(Order.id == order_id)
-        )
-        result = await self.session.execute(stmt)
-        order_instance = result.scalar_one_or_none()
-        if not order_instance:
-            raise ObjectDoesNotExistException()
-
-        order_data = OrderModel.model_validate(order_instance, from_attributes=True)
-        order_data.address_id = UserAddressRead.model_validate(order_instance.address)
-
-        return order_data
 
 
 def get_order_repository(session: AsyncSession = Depends(get_session)) -> OrderRepository:

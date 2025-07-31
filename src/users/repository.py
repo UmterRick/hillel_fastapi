@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.common.databases.postgres import get_session
 from src.common.repository.sqlalchemy import BaseSqlAlchemyRepository, PType
-from src.users.models.pydantic import UserModel, UserWithPassword
-from src.users.models.sqlalchemy import User
+from src.users.models.pydantic import UserModel, UserWithPassword, UserAddressModel
+from src.users.models.sqlalchemy import User, UserAddress
 
 
 class UserRepository(BaseSqlAlchemyRepository[User, UserModel]):
@@ -27,7 +27,14 @@ class UserRepository(BaseSqlAlchemyRepository[User, UserModel]):
         return UserWithPassword.model_validate(user)
 
 
-
-
 def get_user_repository(session: AsyncSession = Depends(get_session)) -> UserRepository:
     return UserRepository(session=session)
+
+
+class UserAddressRepository(BaseSqlAlchemyRepository[UserAddress, UserAddressModel]):
+    def __init__(self, session: AsyncSession):
+        super().__init__(model=UserAddress, pydantic_model=UserAddressModel, session=session)
+
+
+def get_user_address_repository(session: AsyncSession = Depends(get_session)) -> UserAddressRepository:
+    return UserAddressRepository(session=session)

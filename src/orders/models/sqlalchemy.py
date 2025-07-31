@@ -9,11 +9,12 @@ from sqlalchemy import (
     Enum as SQLEnum,
     Numeric,
 )
+
 from enum import Enum
 from sqlalchemy.orm import relationship
-
 from src.common.databases.postgres import Base
-import datetime
+from datetime import datetime
+
 
 
 class OrderStatusEnum(str, Enum):
@@ -25,10 +26,12 @@ class OrderStatusEnum(str, Enum):
     Returned = "Returned"
 
 
+
 class BasketStatusEnum(str, Enum):
     Open = "Open"
     Closed = "Closed"
     Cancelled = "Cancelled"
+
 
 
 class BasketLine(Base):
@@ -36,13 +39,14 @@ class BasketLine(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     product_id = Column(Integer, ForeignKey('products.id'))
-    basket_id = Column(Integer, ForeignKey('baskets.id'))
+    basket_id = Column(Integer, ForeignKey('baskets.id', ondelete="CASCADE"))
     quantity = Column(Integer, CheckConstraint('quantity >= 0'))
     price = Column(Numeric(10, 2), CheckConstraint('price >= 0'))
 
 
     product = relationship('Product', back_populates='basket_lines')
     basket = relationship('Basket', back_populates='basket_lines')
+
 
 
 class Basket(Base):
@@ -55,8 +59,14 @@ class Basket(Base):
 
 
     user = relationship('User', back_populates='basket')
-    basket_lines = relationship('BasketLine', back_populates='basket')
+    basket_lines = relationship(
+        'BasketLine',
+        back_populates='basket',
+        cascade='all, delete-orphan',
+        passive_deletes=True
+    )
     orders = relationship('Order', back_populates='basket')
+
 
 
 class OrderLine(Base):
@@ -64,13 +74,14 @@ class OrderLine(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     product_id = Column(Integer, ForeignKey('products.id'))
-    order_id = Column(Integer, ForeignKey('orders.id'))
+    order_id = Column(Integer, ForeignKey('orders.id', ondelete='CASCADE'))
     quantity = Column(Integer, CheckConstraint('quantity >= 0'))
     price = Column(Numeric(10, 2), CheckConstraint('price >= 0'))
 
 
     product = relationship('Product', back_populates='order_lines')
     order = relationship('Order', back_populates='order_lines')
+
 
 
 class Order(Base):
@@ -86,11 +97,10 @@ class Order(Base):
     shipping_method = Column(String, nullable=True)
     status = Column(SQLEnum(OrderStatusEnum, name="order_status"), nullable=False)
     additional_info = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.datetime.now(tz=datetime.timezone.utc))
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
-    order_lines = relationship('OrderLine', back_populates='order')
+    order_lines = relationship('OrderLine', back_populates='order', cascade='all, delete-orphan')
     basket = relationship('Basket', back_populates='orders')
     user = relationship('User', back_populates='orders')
     address = relationship('UserAddress', back_populates='orders')
-
