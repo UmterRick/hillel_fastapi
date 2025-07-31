@@ -41,9 +41,9 @@ class BaseSqlAlchemyRepository(Generic[T, PType]):
         await self.session.refresh(instance)
         return self.pydantic_model.model_validate(instance, from_attributes=True)
 
-    async def update(self, pk: int, update_data: PType) -> PType:
+    async def update(self, pk: int, update_data: BaseModel) -> PType:
         await self.session.execute(
-            sqlalchemy_update(self.model).where(self.model.id == pk).values(**update_data.model_dump()),
+            sqlalchemy_update(self.model).where(self.model.id == pk).values(**update_data.model_dump(exclude_unset=True)),
         )
         await self.session.commit()
         return await self.get(pk=pk)

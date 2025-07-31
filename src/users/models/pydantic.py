@@ -1,6 +1,7 @@
 from typing import Union
 
 from pydantic import BaseModel, EmailStr, ConfigDict
+from typing import Optional
 
 class UserModel(BaseModel):
     id: Union[int, None]
@@ -15,3 +16,18 @@ class UserModel(BaseModel):
 
 class UserWithPassword(UserModel):
     hashed_password: str
+
+
+class UserAddressModel(BaseModel):
+    id: Optional[int]
+    user_id: int
+    title: Optional[str]
+    city: str
+    street: str
+    house: str
+    apartment: Optional[str]
+    post_code: Optional[str]  # саме str — не int!
+    additional_info: Optional[str]
+
+    model_config = ConfigDict(from_attributes=True)
+

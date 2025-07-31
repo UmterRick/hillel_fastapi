@@ -6,18 +6,18 @@ from fastapi import FastAPI
 
 from src.base_settings import base_settings
 from src.common.databases.postgres import postgres
-from general.views import router as status_router
+from src.general.views import router as status_router
 from src.catalogue.views import product_router
+from src.orders.views import orders_router
 from src.authentication.views import router as auth_router
 from src.users.views import router as users_router
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
-    postgres.connect(base_settings.postgres.url)
+    postgres.connect(base_settings.postgres)
     include_routers(application)
     yield
     await postgres.disconnect()
-
 
 def include_routers(application: FastAPI) -> None:
     application.include_router(router=status_router)
@@ -35,6 +35,11 @@ def include_routers(application: FastAPI) -> None:
         router=auth_router,
         prefix="/auth",
         tags=["Authentication"]
+    )
+    application.include_router(
+        router=orders_router,
+        prefix="/orders",
+        tags=["Orders"],
     )
 
 def get_application():

@@ -8,7 +8,8 @@ from src.users.models.pydantic import UserModel
 from src.users.models.sqlalchemy import User
 from src.users.services import get_user_service
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+#oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 async def get_current_user(
         service: Annotated[get_user_service, Depends()],
