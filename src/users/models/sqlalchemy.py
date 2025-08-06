@@ -29,6 +29,8 @@ class User(Base):
     last_login = Column(DateTime, nullable=True)
 
     addresses = relationship("UserAddress", back_populates="user")
+    baskets = relationship("Basket", back_populates="user")
+    orders = relationship("Order", back_populates="user")
 
     def __str__(self):
         return self.email
